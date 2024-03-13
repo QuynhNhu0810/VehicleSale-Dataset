@@ -1,3 +1,4 @@
+
 CREATE TABLE segment_score
 (
     segment Varchar(50),
