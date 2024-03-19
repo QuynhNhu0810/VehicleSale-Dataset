@@ -47,29 +47,56 @@ group by productline,year(orderdate)
 ) as r
 where ranking = 1
 --5) Ai là khách hàng tốt nhất, phân tích dựa vào RFM 
-with rfm as (
-select customername
-,datediff(day, max(orderdate), getdate()) as R
-,count(distinct ordernumber) as F
-,sum(sales) as M
-from dbo.SALES_DATASET_RFM_PRJ
-group by customername)
+CREATE TABLE rfm_table (
+	R DECIMAL,
+	F DECIMAL,
+	M DECIMAL,
+    customername VARCHAR(1000),
+    scores NUMERIC,
+	segment VARCHAR(100),
+	R_score NUMERIC,
+	F_score NUMERIC,
+	M_score NUMERIC,
+)
 
-,rfm_score as(
-select customername
-,ntile(5) over (order by R desc) as R_score
-,ntile(5) over (order by F) as F_score
-,ntile(5) over (order by M) as M_score
-from rfm)
+;WITH rfm AS (
+    SELECT 
+        customername,
+        DATEDIFF(day, MAX(orderdate), GETDATE()) AS R,
+        COUNT(DISTINCT ordernumber) AS F,
+        SUM(sales) AS M
+    FROM dbo.SALES_DATASET_RFM_PRJ
+    GROUP BY customername
+),
+rfm_score AS (
+    SELECT 
+		R,F,M,
+        customername,
+        NTILE(5) OVER (ORDER BY R DESC) AS R_score,
+        NTILE(5) OVER (ORDER BY F) AS F_score,
+        NTILE(5) OVER (ORDER BY M) AS M_score
+    FROM rfm
+),
+rfm_final AS (
+    SELECT 
+		R,F,M,
+		R_score,
+		F_score,
+		M_score,
+        customername,
+        CONCAT(R_score, F_score, M_score) AS rfm_score
+    FROM rfm_score
+)
+INSERT INTO rfm_table (R,F,M,customername, scores,segment,R_score,F_score,M_score)
+SELECT 
+	a.R,a.F,a.M,
+    a.customername,
+    b.scores,
+	b.segment,
+	a.R_score,
+	a.F_score,
+	a.M_score
+FROM rfm_final a
+JOIN segment_score b ON a.rfm_score = b.scores
+select * from rfm_table
 
-,rfm_final as(
-select customername,
-concat(R_score, F_score, M_score) as rfm_score
-from rfm_score)
-
-
-select a.customername, b.scores
-from rfm_final a
-join segment_score b on a.rfm_score = b.scores
-where segment = 'Champions'
-order by 2 desc
