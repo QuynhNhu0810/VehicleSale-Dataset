@@ -1,4 +1,11 @@
-
+**Data Cleaning Steps**
+- Convert appropriate data types for the fields.
+- Check for NULL/BLANK values in the fields: ORDERNUMBER, QUANTITYORDERED, PRICEEACH, ORDERLINENUMBER, SALES, ORDERDATE.
+- Add columns CONTACTLASTNAME and CONTACTFIRSTNAME, extracted from CONTACTFULLNAME.
+- Normalize CONTACTLASTNAME and CONTACTFIRSTNAME to have the first letter capitalized and subsequent letters in lowercase.
+- Add columns QTR_ID, MONTH_ID, YEAR_ID respectively representing Quarter, Month, and Year extracted from ORDERDATE.
+- Identify outliers  for the QUANTITYORDERED column.
+  
 **1. Revenue and sales trend from 2003 to 2005**
    
 ![image](https://github.com/QuynhNhu0810/VehicleSale-Dataset/assets/144129608/753dbfda-8aea-49e0-9137-564657d029df)
